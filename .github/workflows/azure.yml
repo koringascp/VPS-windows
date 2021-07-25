@@ -1,0 +1,32 @@
+name: Azure
+
+on: workflow_dispatch
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Baixando Ngrok
+      run: Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+    - name: Extraindo Ngrok
+      run: Expand-Archive ngrok.zip
+    - name: Auth
+      run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+      env:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    - name: Ativando TS
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+    - name: Firewall para RDP
+      run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    - name: Permitindo Propriedades RDP do Regdit
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    - name: Atribuir usuário
+      run: Set-LocalUser -Name "saiyd" -Password (ConvertTo-SecureString -AsPlainText "Senhaadmin123" -Force)
+    - name: Criando Tunnel
+      run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 3389"'
+    - name: Baixando timeout script
+      run: Invoke-WebRequest https://raw.githubusercontent.com/koringascp/VPS-windows/main/timeout.ps1 -OutFile timeout.ps1
+    - name: Permanecendo ligado
+      run: ./timeout.ps1

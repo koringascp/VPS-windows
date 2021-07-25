@@ -1,0 +1,22 @@
+name: Ubuntu 20.04
+
+on: 
+  workflow_dispatch:
+    inputs:
+      chrome_access_code:
+        description: Seu codigo remoto
+        required: true
+      pin:
+        description: Sua senha 6 digitos
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run settting file
+        run: |
+          sudo bash ./linux_config/setting.sh
+          ${{ github.event.inputs.chrome_access_code }} -pin=${{ github.event.inputs.pin }}
+      - name: Ubuntu iniciadom Pronto!
+        run: sleep 1d
